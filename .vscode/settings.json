@@ -1,0 +1,8 @@
+{
+  "dotnet.defaultSolution": "SkailPurchaseApproval.sln",
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  }
+}
