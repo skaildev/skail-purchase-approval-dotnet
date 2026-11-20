@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Purchase approval · skail demo</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath d='M25.4385 18.2557L7.28223 18.2538L7.28125 4.53796C7.28123 3.98936 7.21634 0.353387 7.32422 0.00280762C13.2929 0.0779445 19.4626 0.0104719 25.4414 0.00280762L25.4385 18.2557ZM10.917 7.30261L18.1797 7.30164L18.1777 14.6083L21.8213 14.6102V3.6532C18.2322 3.65317 14.494 3.70895 10.918 3.64734L10.917 7.30261Z' fill='%2368057F'/%3E%3Cpath d='M0 14.609L3.6314 14.6068L3.6293 21.8979L10.9159 21.8957L10.9154 25.5448L2.61941e-05 25.5414L0 14.609Z' fill='%23E8611C'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* skail brand tokens, from skail.dev */
+    :root {
+      --bg: #ffffff; --bg2: #f7f7f8; --bg3: #f0f0f2; --card: #fafafb;
+      --ink: #111114; --ink2: #4b4c54; --ink3: #8a8b94;
+      --line: #ebebee; --line2: #dfdfe4;
+      --brand: #68057F; --brand2: #8b2fa8; --brand-soft: #f5edf8; --orange: #E8611C;
+      --ok: #17914f; --ok-soft: #e8f6ee; --run: #2d6be4; --run-soft: #e9f0fd;
+      --err: #d6363b; --err-soft: #fcebec; --warn: #b7791f; --warn-soft: #fdf4e3;
+      --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+      --r: 14px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg2); color: var(--ink); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+    a { color: var(--brand); }
+    .nav { background: var(--bg); border-bottom: 1px solid var(--line); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 19px; letter-spacing: -.03em; color: var(--ink); text-decoration: none; }
+    .chip { font-size: 12px; padding: 2px 9px; border-radius: 7px; border: 1px solid var(--line2); background: var(--bg); color: var(--ink2); font-weight: 500; }
+    main.wrap { padding-top: 44px; padding-bottom: 60px; }
+    h1 { font-size: clamp(30px, 4.5vw, 44px); line-height: 1.05; letter-spacing: -.04em; font-weight: 500; margin: 0 0 12px; }
+    .lead { color: var(--ink2); max-width: 720px; margin: 0 0 28px; }
+    .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .btn { display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 999px; border: 0; font: 500 14px var(--sans); cursor: pointer; }
+    .btn-dark { background: var(--ink); color: #fff; }
+    .btn-brand { background: var(--brand); color: #fff; }
+    .btn-line { background: var(--bg); color: var(--err); border: 1px solid var(--line2); }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .muted { color: var(--ink3); font-size: 14px; }
+    .mono { font-family: var(--mono); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; }
+    .card h2 { display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 600; margin: 0 0 14px; letter-spacing: -.01em; }
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .pill { font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; }
+    .waiting { background: var(--warn-soft); color: var(--warn); }
+    .approved { background: var(--ok-soft); color: var(--ok); }
+    .rejected { background: var(--err-soft); color: var(--err); }
+    .not-asked, .no-answer, .decided { background: var(--bg3); color: var(--ink2); }
+    .result { border-radius: var(--r); padding: 14px 18px; font-weight: 500; margin-bottom: 16px; }
+    .result.approved { background: var(--ok-soft); color: var(--ok); }
+    .result.rejected { background: var(--err-soft); color: var(--err); }
+    .result.cancelled { background: var(--warn-soft); color: var(--warn); }
+    .timeline { list-style: none; margin: 0; padding: 0; font: 13px/1.7 var(--mono); color: var(--ink2); }
+    .timeline time { color: var(--ink3); margin-right: 10px; }
+    .empty { color: var(--ink3); font-size: 14px; }
+    footer { color: var(--ink3); font-size: 13px; margin-top: 28px; }
+    .steps { margin: 0 0 16px; padding-left: 20px; color: var(--ink2); }
+    .steps li { margin: 2px 0; }
+    .paths { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0 0 24px; }
+    .path { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13px; color: var(--ink2); }
+    .path b { display: block; color: var(--ink); font-weight: 500; margin-bottom: 2px; }
+    .order { display: flex; flex-wrap: wrap; gap: 24px; font-size: 14px; }
+    .order span { color: var(--ink3); display: block; font-size: 12px; }
+    .order b { font-weight: 500; font-size: 16px; }
+    .card .role { color: var(--ink2); font-size: 14px; margin: -6px 0 12px; }
+    .clock { height: 6px; border-radius: 999px; background: var(--bg3); overflow: hidden; margin-bottom: 6px; }
+    .clock div { height: 100%; background: var(--warn); transition: width 1s linear; }
+    .hint { font-size: 13px; color: var(--ink2); margin: 0 0 12px; min-height: 20px; }
+    .hint b { color: var(--warn); font-weight: 600; }
+    .section { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; }
+    @media (max-width: 720px) { .paths { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="https://skail.dev" target="_blank" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M25.4385 18.2557L7.28223 18.2538L7.28125 4.53796C7.28123 3.98936 7.21634 0.353387 7.32422 0.00280762C13.2929 0.0779445 19.4626 0.0104719 25.4414 0.00280762L25.4385 18.2557ZM10.917 7.30261L18.1797 7.30164L18.1777 14.6083L21.8213 14.6102V3.6532C18.2322 3.65317 14.494 3.70895 10.918 3.64734L10.917 7.30261Z" fill="#68057F"/><path d="M0 14.609L3.6314 14.6068L3.6293 21.8979L10.9159 21.8957L10.9154 25.5448L2.61941e-05 25.5414L0 14.609Z" fill="#E8611C"/></svg>
+        skail <span class="chip">demo</span>
+      </a>
+      <a class="muted" href="https://docs.skail.dev" target="_blank" rel="noopener">Docs</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>Purchase approval</h1>
+    <p class="lead">A purchase order needs the approval of the manager. A skail function asks the manager and waits for
+      the decision until a deadline; with no answer it goes to the director and waits again; with no answer again, it
+      cancels the order. The wait is durable: it holds no thread or process, and it goes on even with the app closed.</p>
+
+    <p class="muted" style="margin: 0 0 6px">You play the manager and the director:</p>
+    <ol class="steps">
+      <li>Click <b>Place purchase order</b>.</li>
+      <li>Approve or reject it, or do nothing and watch the deadline (1 minute per level) move it along.</li>
+    </ol>
+
+    <div class="paths">
+      <div class="path"><b>Approve</b>approved, sent to the supplier</div>
+      <div class="path"><b>Reject</b>rejected</div>
+      <div class="path"><b>Do nothing for 1 min</b>goes to the director</div>
+      <div class="path"><b>Do nothing again</b>cancelled</div>
+    </div>
+
+    <div class="section">
+      <button id="place" class="btn btn-brand">Place purchase order</button>
+    </div>
+
+    <section id="orderCard" class="card" style="margin-bottom: 16px" hidden>
+      <h2><span>Purchase order <span id="orderId" class="muted mono"></span></span><span id="orderStatus" class="pill"></span></h2>
+      <div id="order" class="order"></div>
+    </section>
+
+    <div id="result" class="result" hidden></div>
+
+    <div class="grid" id="levels"></div>
+
+    <section class="card">
+      <h2>What happened</h2>
+      <ol id="timeline" class="timeline"></ol>
+      <p id="empty" class="empty">Place an order to start.</p>
+    </section>
+
+    <footer>This is a demo, not production code: the purchase orders and the approvals are simulated. The deadline is 1
+      minute here and would be days in a real approval, with the same code. Each step is also in the <a href="https://docs.skail.dev/referencia/portal/monitor" target="_blank" rel="noopener">skail Monitor</a>.</footer>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const DEADLINE = 60;
+    const endText = {
+      approved: "Approved: the order goes to the supplier.",
+      rejected: "Rejected: the order does not go ahead.",
+      cancelled: "Cancelled: nobody answered before the deadlines.",
+    };
+    const roles = {
+      manager: "Asked first. Has 1 minute to decide.",
+      director: "Asked only when the manager does not answer in time. Also has 1 minute.",
+    };
+    const money = (v) => "R$ " + Number(v).toLocaleString("en-US", { minimumFractionDigits: 2 });
+    let state = { order: null };
+
+    async function post(url) {
+      const response = await fetch(url, { method: "POST" });
+      if (!response.ok && response.status !== 409) alert(`The app answered ${response.status}.`);
+      await refresh();
+    }
+
+    $("place").onclick = () => post("/api/orders");
+
+    function hint(l, o) {
+      if (l.status === "waiting" && o.deadline) {
+        const left = Math.max(0, Math.round((new Date(o.deadline) - Date.now()) / 1000));
+        const next = l.level === "manager" ? "it goes to the director" : "the order is cancelled";
+        return { left, text: `Waiting for you. In <b>${left} s</b> ${next}.` };
+      }
+      const text = {
+        "not asked": l.level === "director" ? "Not asked: the manager has the order." : "",
+        "no answer": "Did not answer in time.",
+        approved: "Approved the order.",
+        rejected: "Rejected the order.",
+        decided: "Decided.",
+      }[l.status] ?? "";
+      return { left: null, text };
+    }
+
+    function render() {
+      const o = state.order;
+      $("place").textContent = o ? "Place another order" : "Place purchase order";
+      $("place").disabled = !!o && !o.end; // one order at a time
+      $("orderCard").hidden = !o;
+      $("result").hidden = !o?.end;
+      if (o?.end) { $("result").className = `result ${o.end}`; $("result").textContent = endText[o.end]; }
+
+      if (o) {
+        $("orderId").textContent = o.id.slice(0, 8);
+        const status = o.end ?? (o.waiting ? `waiting for the ${o.waiting}` : "deciding");
+        $("orderStatus").textContent = status;
+        $("orderStatus").className = `pill ${o.end ?? "waiting"}`;
+        $("order").innerHTML = `<div><span>Item</span><b>${o.description}</b></div>
+          <div><span>Supplier</span><b>${o.supplier}</b></div><div><span>Amount</span><b>${money(o.amount)}</b></div>`;
+      }
+
+      $("levels").innerHTML = (state.levels ?? []).map((l) => {
+        const h = hint(l, o);
+        const clock = h.left === null ? "" : `<div class="clock"><div style="width: ${(100 * h.left) / DEADLINE}%"></div></div>`;
+        return `<article class="card">
+          <h2>${l.label} <span class="pill ${l.status.replace(" ", "-")}">${l.status}</span></h2>
+          <p class="role">${roles[l.level] ?? ""}</p>
+          ${clock}<p class="hint">${h.text}</p>
+          <div class="actions">
+            <button class="btn btn-brand" ${l.canDecide ? "" : "disabled"} onclick="post('/api/decisions/${l.level}/true')">Approve</button>
+            <button class="btn btn-line" ${l.canDecide ? "" : "disabled"} onclick="post('/api/decisions/${l.level}/false')">Reject</button>
+          </div>
+        </article>`;
+      }).join("");
+
+      const items = state.timeline ?? [];
+      $("empty").hidden = items.length > 0;
+      $("timeline").innerHTML = items.map((t) =>
+        `<li><time>${new Date(t.at).toLocaleTimeString()}</time>${t.text.replace(/</g, "&lt;")}</li>`).join("");
+    }
+
+    async function refresh() {
+      try { state = await (await fetch("/api/state")).json(); } catch { /* the app is restarting */ }
+      render();
+    }
+
+    refresh();
+    setInterval(refresh, 1000);
+  </script>
+</body>
+</html>
